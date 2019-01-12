@@ -16,3 +16,4 @@ models/*.meta
 __pycache__/
 *.py[cod]
 *$py.class
+*.vscode
