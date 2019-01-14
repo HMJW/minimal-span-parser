@@ -12,10 +12,10 @@ import evaluate
 import parse
 import trees
 import vocabulary
-from ucca.convert import to_text, xml2passage, passage2file
+from ucca.convert import passage2file, xml2passage
 from ucca.core import edge_id_orderkey
-from ucca.layer1 import Layer1, PunctNode, NodeTags
 from ucca.layer0 import Terminal
+from ucca.layer1 import Layer1, NodeTags, PunctNode
 
 
 def format_elapsed(start_time):
@@ -102,10 +102,27 @@ def predict():
     subparser.add_argument(
         "--test-path", default="/data/wjiang/UCCA/test-data/test-xml/UCCA_English-20K"
     )
+    subparser.add_argument(
+        "--out-path", default="/data/wjiang/UCCA/test-data/predict-xml/UCCA_English-20K"
+    )
 
     args = parser.parse_args()
     passages, predicted = args.callback(args)
-    return passages, predicted
+
+    print("restoring UCCA gragh...")
+    for x, y in zip(passages, predicted):
+        to_UCCA(x, y)
+    print("test data path : %s" % (args.test_path))
+    print("output path : %s" % (args.out_path))
+
+    if not os.path.exists(args.out_path):
+        try:
+            os.makedirs(args.out_path)
+        except Exception as e:
+            print(e)
+
+    for passage in passages:
+        passage2file(passage, os.path.join(args.out_path, passage.ID + ".xml"))
 
 
 def tree2passage(passage, tree):
@@ -185,7 +202,6 @@ def restore_discontinuity(passage):
     for node in passage.layer("1")._all:
         for i in node._incoming:
             if "down" in i.tag:
-                print(passage.ID, i._tag)
                 restore_down(node, i)
             elif "left" in i.tag:
                 restore_left(node, i)
@@ -202,10 +218,4 @@ def to_UCCA(passage, tree):
 
 
 if __name__ == "__main__":
-    passages, predicted = predict()
-    for x, y in zip(passages, predicted):
-        to_UCCA(x, y)
-    print(passages[0])
-    print(predicted[0].linearize())
-    passage2file(passages[0], "./" + passages[0].ID + ".xml")
-
+    predict()
