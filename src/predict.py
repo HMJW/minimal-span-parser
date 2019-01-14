@@ -144,25 +144,29 @@ def tree2passage(passage, tree):
             children = parent.children
             is_punc = sum(isinstance(c, Terminal) and c.punct for c in children)
             if is_punc == len(children):
-                true_ID = parent.ID
-                punc_node = PunctNode(
-                    root=passage,
-                    tag=NodeTags.Punctuation,
-                    ID=passage.layer("1").next_id(),
-                )
-                parent.parents[0].add(parent._incoming[0].tag, punc_node)
-                for c in children:
-                    punc_node.add("Terminal", c)
+                parent._tag = 'PNCT'
+                # true_ID = parent.ID
+                # punc_node = PunctNode(
+                #     root=passage,
+                #     tag=NodeTags.Punctuation,
+                #     ID=passage.layer("1").next_id(),
+                # )
+                # parent.parents[0].add(parent._incoming[0].tag, punc_node)
+                # for c in children:
+                #     punc_node.add("Terminal", c)
 
-                for i in parent._incoming:
-                    parent.parents[0]._outgoing.remove(i)
-                for i in parent._outgoing:
-                    i.child._incoming.remove(i)
-                passage.layer("1")._all.remove(parent)
-                punc_node._ID = true_ID
+                # for i in parent._incoming:
+                #     parent.parents[0]._outgoing.remove(i)
+                # for i in parent._outgoing:
+                #     i.child._incoming.remove(i)
+                # passage.layer("1")._all.remove(parent)
+                # punc_node._ID = true_ID
 
     if "format" not in passage.extra:
         passage.extra["format"] = "ucca"
+    if "1" in passage._layers:
+        del passage._layers['1']
+    passage._nodes.clear()
     layer = Layer1(passage, attrib=None)
     assert "0" in passage._layers
     if tree.label != "ROOT":
